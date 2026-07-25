@@ -9,7 +9,7 @@
 int main(void) {
     Imagen* original = leer_imagen_stream(stdin);
     if (original == NULL) {
-        fprintf(stderr, "aDeRuido: no se pudo leer la imagen original de stdin\n");
+        printf("aDeRuido: no se pudo leer la imagen original de stdin\n");
         return 1;
     }
 
@@ -18,7 +18,7 @@ int main(void) {
     if (rama != NULL) fclose(rama);
 
     if (preprocesada == NULL) {
-        fprintf(stderr, "aDeRuido: no se pudo leer la imagen preprocesada del fd 3\n");
+        printf("aDeRuido: no se pudo leer la imagen preprocesada del fd 3\n");
         free_image(original);
         return 1;
     }
@@ -33,7 +33,7 @@ int main(void) {
     free_image(ruido);
 
     if (!ok_preprocesada || !ok_ruido) {
-        fprintf(stderr, "aDeRuido: no se pudo exportar una de las imagenes de depuracion\n");
+        printf("aDeRuido: no se pudo exportar una de las imagenes de depuracion\n");
         return 1;
     }
 

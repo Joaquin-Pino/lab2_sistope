@@ -54,7 +54,7 @@ Descripcion:
 int guardar_imagen_archivo(const char* ruta, Imagen* img) {
     FILE* archivo = fopen(ruta, "wb");
     if (archivo == NULL) {
-        fprintf(stderr, "aDeRuido: no se pudo abrir el archivo %s para escribir\n", ruta);
+        printf("aDeRuido: no se pudo abrir el archivo %s para escribir\n", ruta);
         return 0;
     }
 
