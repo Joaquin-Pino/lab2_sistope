@@ -1,0 +1,12 @@
+venv/
+__pycache__/
+lab2
+cargaDatos
+preprocesamiento
+tHough
+resultados
+aDeRuido
+*.bin
+*.png
+*.o
+*.md
