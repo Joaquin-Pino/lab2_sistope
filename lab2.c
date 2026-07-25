@@ -1,8 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <limits.h>
-#include <errno.h>
 #include <unistd.h>
 #include <getopt.h>
 #include <sys/wait.h>
@@ -44,25 +41,21 @@ Entradas:
 Salidas:
     int (0: 'str' no es un entero positivo valido, 1: se parseo correctamente)
 Descripcion:
-    valida que 'str' represente, completo, un entero positivo (sin texto
-    sobrante ni truncamientos silenciosos como los que hace atoi() con
-    valores como "4.5"), usando strtol()
+    valida que 'str' este compuesto solo por digitos (nada de puntos, signos
+    ni letras) y, si es asi, lo convierte con atoi(). Asi se rechazan casos
+    como "4.5" o "3abc" sin necesitar strtol()
 */
 static int parse_entero_positivo(const char* str, int* out) {
     if (str == NULL || str[0] == '\0') return 0;
 
-    char* endptr;
-    errno = 0;
-    long val = strtol(str, &endptr, 10);
+    for (int i = 0; str[i] != '\0'; i++) {
+        if (str[i] < '0' || str[i] > '9') return 0; //encontramos algo que no es digito
+    }
 
-    //si endptr no llego al final del string, quedo texto sin consumir (ej. "4.5", "3abc")
-    if (*endptr != '\0') return 0;
-    //si errno quedo en ERANGE, el valor no entra en un long
-    if (errno == ERANGE) return 0;
-    //el enunciado exige enteros positivos
-    if (val <= 0 || val > INT_MAX) return 0;
+    int valor = atoi(str);
+    if (valor <= 0) return 0; //el enunciado exige un entero positivo
 
-    *out = (int)val;
+    *out = valor;
     return 1;
 }
 
