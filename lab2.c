@@ -60,36 +60,36 @@ static int parse_entero_positivo(const char* str, int* out) {
 }
 
 int main(int argc, char* argv[]) {
+    //flags obligatorias
     char* ruta_i = NULL;
-    int r = 0, t = 0, v = V_DEFAULT;
+    int r = 0;
+    int t = 0;
+    //flags opcionales
+    int v = V_DEFAULT;
     char* ruta_o = O_DEFAULT;
     int flag_d = 0;
 
-    int i_seen = 0, r_seen = 0, t_seen = 0;
-
+    //revisar toda la entrada
     int opt;
     while ((opt = getopt(argc, argv, "i:r:t:v:o:d")) != -1) {
         switch (opt) {
             case 'i':
                 ruta_i = optarg;
-                i_seen = 1;
                 break;
             case 'r':
-                if (!parse_entero_positivo(optarg, &r)) {
+                if (!parse_entero_positivo(optarg, &r)) { //verificar que sea un entero positivo
                     printf("lab2: -r debe ser un entero positivo (recibido: '%s')\n", optarg);
                     return 1;
                 }
-                r_seen = 1;
                 break;
             case 't':
-                if (!parse_entero_positivo(optarg, &t)) {
+                if (!parse_entero_positivo(optarg, &t)) { //verificar que sea un entero positivo
                     printf("lab2: -t debe ser un entero positivo (recibido: '%s')\n", optarg);
                     return 1;
                 }
-                t_seen = 1;
                 break;
             case 'v':
-                if (!parse_entero_positivo(optarg, &v) || v % 2 == 0) {
+                if (!parse_entero_positivo(optarg, &v) || v % 2 == 0) { //verificar que sea un entero positivo impar
                     printf("lab2: -v debe ser un entero positivo impar (recibido: '%s')\n", optarg);
                     return 1;
                 }
@@ -106,27 +106,31 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    if (!i_seen || !r_seen || !t_seen) {
+    //si alguna de las flags obligatorias no se paso, mostrar mensaje de error y uso, cancelar el programa
+    if (ruta_i == NULL || r == 0 || t == 0) {
         printf("lab2: faltan flags obligatorias (-i, -r y -t son requeridas)\n");
         imprimir_uso();
         return 1;
     }
 
     //los parametros numericos se pasan a los nodos como argv (ya validados)
-    char r_str[16], t_str[16], v_str[16];
-    snprintf(r_str, sizeof(r_str), "%d", r);
-    snprintf(t_str, sizeof(t_str), "%d", t);
-    snprintf(v_str, sizeof(v_str), "%d", v);
+    char r_str[16], t_str[16], v_str[16]; //buffers para los valores
+    snprintf(r_str, sizeof(r_str), "%d", r); //convertir el valor r a stirng y guardarlo en r_str
+    snprintf(t_str, sizeof(t_str), "%d", t); //convertir el valor t a stirng y guardarlo en t_str
+    snprintf(v_str, sizeof(v_str), "%d", v); //convertir el valor v a stirng y guardarlo en v_str
 
+    //crear pipes para cada proceso
     //pipes de la linea principal del pipeline
     int p_carga_prepro[2], p_prepro_hough[2], p_hough_resultados[2];
     //pipes de la rama opcional de analisis de ruido (solo si -d)
     int p_carga_ruido[2], p_prepro_ruido[2];
 
+    //si algun pipe falla, no se puede continuar: imprimir error y salir
     if (pipe(p_carga_prepro) == -1 || pipe(p_prepro_hough) == -1 || pipe(p_hough_resultados) == -1) {
         perror("lab2: pipe");
         return 1;
     }
+    //si algun pipe de la rama de ruido falla, no se puede continuar: imprimir error y salir
     if (flag_d) {
         if (pipe(p_carga_ruido) == -1 || pipe(p_prepro_ruido) == -1) {
             perror("lab2: pipe");
@@ -139,43 +143,49 @@ int main(int argc, char* argv[]) {
     //los pipes son siempre >= 3 (el 0, 1 y 2 ya estan ocupados), asi que el
     //fd 3 se libera al cerrar los extremos sobrantes y queda disponible como
     //destino para la rama de analisis de ruido
-
+    
+    //guardar los pids de cada hijo para esperar a que terminen al final
     pid_t pids[5];
-    int n_pids = 0;
-    pid_t pid;
+    int n_pids = 0; //cotador de pids guardados
+    pid_t pid; //pid temporal para cada fork
 
     //---- nodo cargaDatos ----
-    pid = fork();
-    if (pid == -1) {
+    pid = fork(); //se crea el proceso hijo para el nodo cargaDatos
+    if (pid == -1) { //verificar que el fork() no haya fallado
         perror("lab2: fork");
         return 1;
     }
-    if (pid == 0) {
+    if (pid == 0) { //si es el hijo, ejecutar el nodo cargaDatos
+        //cerrar los extremos de pipe que no se usan en este nodo
         //solo escribe: hacia preprocesamiento y, si corresponde, hacia aDeRuido
-        close(p_carga_prepro[0]);
-        close(p_prepro_hough[0]);
+        close(p_carga_prepro[0]); //solo escribe en este pipe, no lee
+        close(p_prepro_hough[0]); //no participa en este pipe
         close(p_prepro_hough[1]);
-        close(p_hough_resultados[0]);
+        close(p_hough_resultados[0]); //no participa en este pipe
         close(p_hough_resultados[1]);
         if (flag_d) {
-            close(p_carga_ruido[0]);
-            close(p_prepro_ruido[0]);
+            close(p_carga_ruido[0]); //solo escribe en este pipe, no lee
+            close(p_prepro_ruido[0]); //no participa en este pipe
             close(p_prepro_ruido[1]);
         }
 
+        //redirigir stdout al pipe correspondiente (escribir en preprocesamiento)
         dup2(p_carga_prepro[1], 1); //stdout -> preprocesamiento
         close(p_carga_prepro[1]);
-
+        
         if (flag_d) {
+            //redirigir stdout al pipe correspondiente (escribir en aDeRuido)
             dup2(p_carga_ruido[1], 3); //fd 3 -> aDeRuido (imagen original)
             close(p_carga_ruido[1]);
         }
 
+        //preparar argumentos de entrada para el nodo cargaDatos
         char* args[] = { RUTA_CARGA_DATOS, ruta_i, flag_d ? "1" : "0", NULL };
-        execv(RUTA_CARGA_DATOS, args);
-        perror("lab2: execv cargaDatos");
-        exit(1);
+        execv(RUTA_CARGA_DATOS, args); //reemplazar el proceso hijo con cargaDatos
+        perror("lab2: execv cargaDatos"); //error si execv() falla
+        exit(1); //terminar el proceso hijo
     }
+    //guardar el pid del hijo y continuar con el siguiente nodo del pipeline
     pids[n_pids++] = pid;
 
     //---- nodo preprocesamiento ----
