@@ -12,7 +12,7 @@
 //umbral, y escribe el reporte final directamente al archivo de salida
 int main(int argc, char* argv[]) {
     if (argc != 4) {
-        fprintf(stderr, "resultados: uso incorrecto (esperado: <t> <v> <ruta_salida>)\n");
+        printf("resultados: uso incorrecto (esperado: <t> <v> <ruta_salida>)\n");
         return 1;
     }
 
@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
     int ancho, alto;
     int* acumulador = leer_acumulador_stream(stdin, &ancho, &alto);
     if (acumulador == NULL) {
-        fprintf(stderr, "resultados: no se pudo leer el acumulador de stdin\n");
+        printf("resultados: no se pudo leer el acumulador de stdin\n");
         return 1;
     }
 

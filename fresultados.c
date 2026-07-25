@@ -85,7 +85,7 @@ Punto* suprimir_no_maximos(int* acumulador, int ancho, int alto, int t, int v, i
 
     Punto* centros = (Punto*)malloc(total_centros * sizeof(Punto));
     if (centros == NULL) {
-        fprintf(stderr, "resultados: fallo al asignar memoria para los centros detectados\n");
+        printf("resultados: fallo al asignar memoria para los centros detectados\n");
         *count = 0;
         return NULL;
     }
@@ -115,7 +115,7 @@ Descripcion:
 int generar_reporte(const char* ruta, Punto* centros, int count) {
     FILE* file = fopen(ruta, "w");
     if (file == NULL) {
-        fprintf(stderr, "resultados: no se pudo abrir el archivo %s para escribir\n", ruta);
+        printf("resultados: no se pudo abrir el archivo %s para escribir\n", ruta);
         return 0;
     }
 

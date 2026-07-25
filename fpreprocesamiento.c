@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "fpreprocesamiento.h"
 
 //elemento estructurante cruz 3x3 usado por erosion() y dilatar()
