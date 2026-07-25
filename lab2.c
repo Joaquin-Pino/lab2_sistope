@@ -36,14 +36,14 @@ static void imprimir_uso(void) {
 
 /*
 Entradas:
-    str (String: texto recibido desde argv, p.ej. el optarg de una flag)
+    str (String: texto recibido desde argv, optarg de una flag)
     out (int*: donde guardar el valor parseado si es valido)
 Salidas:
     int (0: 'str' no es un entero positivo valido, 1: se parseo correctamente)
 Descripcion:
-    valida que 'str' este compuesto solo por digitos (nada de puntos, signos
-    ni letras) y, si es asi, lo convierte con atoi(). Asi se rechazan casos
-    como "4.5" o "3abc" sin necesitar strtol()
+    valida que 'str' sea solo digitos (nada de puntos, signos ni letras) y, 
+    si es asi, lo convierte con atoi(). 
+    Asi se rechazan casos como "4.5" o "3abc".
 */
 static int parse_entero_positivo(const char* str, int* out) {
     if (str == NULL || str[0] == '\0') return 0;
